@@ -34,6 +34,7 @@ public class SushiMonitor_01 {
 		nfs++;
 
 		if(nfs==5)
+			fullGroup = false;
 			noGroup.signal();
 		lock.unlock();
 	}
