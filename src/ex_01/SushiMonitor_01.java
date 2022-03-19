@@ -17,17 +17,20 @@ public class SushiMonitor_01 {
 	public void enter(int i) {
 		/* COMPLETE */
 		lock.lock();
+		if(nfs == 0) {
+			fullGroup = true;
+		}
 		while (numCustomers == MAX_CAPACITY || fullGroup) {
 			System.out.println("----> Entering "+"C("+i+")");
-			if (nfs == 0 && first) {
+			if (first) {
 				System.out.println(" *** Possible group detected. I wait "+"C("+i+")");
 				first = false;
-				fullGroup = true;
 			} else {
 				System.out.println(" *** I'm told to wait for all free "+"C("+i+")");
 			}
 			try {noGroup.await();} catch (InterruptedException e) {}
 		}
+		
 		System.out.println(" +++ [free: " + nfs + "] I sit down C("+i+")");
 		numCustomers++;
 		nfs--;
