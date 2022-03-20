@@ -77,7 +77,10 @@ public class SushiMonitor_03 {
 
 		vipWait.signal();
 		if(vipsWaiting==0) {
-			if(nfs==5) fullGroup = false;
+			if(nfs==5) {
+				first = true;
+				fullGroup = false;
+			}
 			noGroup.signal();
 		}
 		lock.unlock();

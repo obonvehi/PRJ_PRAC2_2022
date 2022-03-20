@@ -44,9 +44,11 @@ public class SushiMonitor_01 {
 		nfs++;
 		System.out.println("---> Now leaving [free: "+ nfs + "] "+"C("+i+")");
 
-		if(nfs==5)
+		if(nfs==5) {
 			fullGroup = false;
+			first = true;
 			noGroup.signal();
+		}
 		lock.unlock();
 	}
 }
