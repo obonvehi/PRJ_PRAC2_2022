@@ -11,7 +11,6 @@ public class SushiMonitor_02 {
 	/* COMPLETE */
 	private volatile boolean fullGroup = false;
 	private volatile int nfs = 5;
-	private volatile boolean first = true;
 	
 	private volatile int nextCustomer = 1;
 	private volatile int nowServing = 1;
@@ -24,7 +23,7 @@ public class SushiMonitor_02 {
 		lock.lock();
 		System.out.println("----> Entering "+"C("+i+")");
 		while (nfs==0 || fullGroup) {
-			if (nfs==0&&!fullGroup) {
+			if (!fullGroup) {
 				System.out.println(" *** Possible group detected. I wait "+"C("+i+")");
 				fullGroup = true;
 			} else {

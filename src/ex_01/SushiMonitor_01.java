@@ -7,7 +7,6 @@ public class SushiMonitor_01 {
 	/* COMPLETE */
 	private volatile boolean fullGroup = false;
 	private volatile int nfs = 5;
-	private volatile boolean first = true;
 	
 	private ReentrantLock lock = new ReentrantLock();
 	Condition noGroup = lock.newCondition();
@@ -17,7 +16,7 @@ public class SushiMonitor_01 {
 		lock.lock();
 		System.out.println("----> Entering "+"C("+i+")");
 		while (nfs==0 || fullGroup) {
-			if (nfs==0&&!fullGroup) {
+			if (!fullGroup) {
 				System.out.println(" *** Possible group detected. I wait "+"C("+i+")");
 				fullGroup = true;
 			} else {
