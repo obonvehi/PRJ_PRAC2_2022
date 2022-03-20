@@ -21,20 +21,26 @@ public class SushiMonitor_02 {
 	public void enter (int i) {
 		/* COMPLETE */
 		lock.lock();
+		int currentCustomer = nextCustomer;
+		nextCustomer++;
 		System.out.println("----> Entering "+"C("+i+")");
-		while (nfs==0 || fullGroup) {
-			if (!fullGroup) {
+		while (nfs==0 || fullGroup || currentCustomer!=nowServing) {
+			
+			if (!fullGroup&&nfs==0) {
 				System.out.println(" *** Possible group detected. I wait "+"C("+i+")");
 				fullGroup = true;
-			} else {
-				System.out.println(" *** I'm told to wait for all free "+"C("+i+")");
-			}
-			try {noGroup.await();} catch (InterruptedException e) {}
+			
+			} else if (fullGroup/*&&currentCustomer==nowServing*/) {System.out.println(" *** I'm told to wait for all free "+"C("+i+")");}
+			
+			if (!fullGroup) noGroup.signal();
+			
+			noGroup.awaitUninterruptibly(); 	
 		}
-		
 		System.out.println(" +++ [free: " + nfs + "] I sit down C("+i+")");
 		nfs--;
+		nowServing++;
 		lock.unlock();
+	
 	}
 	
 	public void exit (int i) {
@@ -43,10 +49,9 @@ public class SushiMonitor_02 {
 		nfs++;
 		System.out.println("---> Now leaving [free: "+ nfs + "] "+"C("+i+")");
 
-		if(nfs==5) {
-			fullGroup = false;
-			noGroup.signal();
-		}
+		if(nfs==5) fullGroup = false;
+			
+		noGroup.signal();
 		lock.unlock();
 	}
 }
