@@ -9,35 +9,31 @@ public class SushiMonitor_02 {
 	
 
 	/* COMPLETE */
-	private final static int MAX_CAPACITY = 5;
-	private boolean fullGroup = false;
-	private int numCustomers = 0;
-	private int nfs;
-	private boolean first = true;
+	private volatile boolean fullGroup = false;
+	private volatile int nfs = 5;
+	private volatile boolean first = true;
+	
+	private volatile int nextCustomer = 1;
+	private volatile int nowServing = 1;
 
 	private ReentrantLock lock = new ReentrantLock();
 	Condition noGroup = lock.newCondition();
-	Queue<Customer> waiting = new ArrayDeque<Customer>();
 	
 	public void enter (int i) {
 		/* COMPLETE */
 		lock.lock();
-		if(nfs == 0) {
-			fullGroup = true;
-		}
-		while(numCustomers == MAX_CAPACITY || fullGroup) {
-			System.out.println("----> Entering "+"C("+i+")");
-			if (first) {
+		System.out.println("----> Entering "+"C("+i+")");
+		while (nfs==0 || fullGroup) {
+			if (nfs==0&&!fullGroup) {
 				System.out.println(" *** Possible group detected. I wait "+"C("+i+")");
-				first = false;
+				fullGroup = true;
 			} else {
 				System.out.println(" *** I'm told to wait for all free "+"C("+i+")");
 			}
-			// customer has to WAIT. 
-			waiting.add(new Customer(i, this));
+			try {noGroup.await();} catch (InterruptedException e) {}
 		}
+		
 		System.out.println(" +++ [free: " + nfs + "] I sit down C("+i+")");
-		numCustomers++;
 		nfs--;
 		lock.unlock();
 	}
@@ -45,12 +41,12 @@ public class SushiMonitor_02 {
 	public void exit (int i) {
 		/* COMPLETE */
 		lock.lock();
+		nfs++;
 		System.out.println("---> Now leaving [free: "+ nfs + "] "+"C("+i+")");
-		if(!waiting.isEmpty()) {
-			waiting.remove();
-		}
-		else {
-			numCustomers--;
+
+		if(nfs==5) {
+			fullGroup = false;
+			noGroup.signal();
 		}
 		lock.unlock();
 	}
