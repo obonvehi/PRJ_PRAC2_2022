@@ -15,14 +15,11 @@ public class SushiMonitor_01 {
 	public void enter(int i) {
 		/* COMPLETE */
 		lock.lock();
-		if(nfs == 0) {
-			fullGroup = true;
-		}
 		System.out.println("----> Entering "+"C("+i+")");
 		while (nfs==0 || fullGroup) {
-			if (first) {
+			if (nfs==0&&!fullGroup) {
 				System.out.println(" *** Possible group detected. I wait "+"C("+i+")");
-				first = false;
+				fullGroup = true;
 			} else {
 				System.out.println(" *** I'm told to wait for all free "+"C("+i+")");
 			}
@@ -42,7 +39,6 @@ public class SushiMonitor_01 {
 
 		if(nfs==5) {
 			fullGroup = false;
-			first = true;
 			noGroup.signal();
 		}
 		lock.unlock();
