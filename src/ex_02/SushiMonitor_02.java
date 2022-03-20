@@ -21,10 +21,8 @@ public class SushiMonitor_02 {
 	public void enter (int i) {
 		/* COMPLETE */
 		lock.lock();
-		int currentCustomer = nextCustomer;
-		nextCustomer++;
 		System.out.println("----> Entering "+"C("+i+")");
-		while (nfs==0 || fullGroup || currentCustomer!=nowServing) {
+		while (nfs==0 || fullGroup) {
 			if (!fullGroup) {
 				System.out.println(" *** Possible group detected. I wait "+"C("+i+")");
 				fullGroup = true;
@@ -36,7 +34,6 @@ public class SushiMonitor_02 {
 		
 		System.out.println(" +++ [free: " + nfs + "] I sit down C("+i+")");
 		nfs--;
-		nowServing++;
 		lock.unlock();
 	}
 	
