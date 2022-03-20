@@ -5,12 +5,11 @@ import java.util.concurrent.locks.*;
 public class SushiMonitor_03 {
 	
 	/* COMPLETE */
-	private final static int MAX_CAPACITY = 5;
 	private volatile boolean fullGroup = false;
-	private volatile int numCustomers;
-	private volatile int vipsWaiting = 0;
 	private volatile int nfs = 5;
-	private volatile boolean first = true;
+	private volatile int nextCustomer = 1;
+	private volatile int nowServing = 1;
+	private volatile int vipsWaiting = 0;
 	
 	private ReentrantLock lock = new ReentrantLock();
 	Condition noGroup = lock.newCondition();
@@ -18,6 +17,15 @@ public class SushiMonitor_03 {
 	
 	public void enterVIP (int i) {
 		/* COMPLETE */
+		lock.lock();
+		System.out.println("----> Entering " + "VIPC(" + i + ")");
+		vipsWaiting++;
+		while (nfs == 0) {noGroup.awaitUninterruptibly(); }
+		vipsWaiting--;
+		System.out.println(" +++ [free: " + nfs + "] I sit down VIPC(" + i + ")");
+		nfs--;
+		lock.unlock();
+		/*
 		lock.lock();
 		System.out.println("----> ENTERING "+"VIPC("+i+")");
 		while (numCustomers == MAX_CAPACITY) {
@@ -29,10 +37,26 @@ public class SushiMonitor_03 {
 		numCustomers++;
 		nfs--;
 		lock.unlock();
+		*/
 	}
 	
 	public void exitVIP (int i) {
 		/* COMPLETE */
+		lock.lock();
+		nfs++;
+		fullGroup = false;
+		System.out.println("---> Now leaving [free: "+nfs+"] " + "VIPC("+ i +")");
+
+		vipWait.signal();
+		
+		if(vipsWaiting==0) {
+			if (nfs == 5) {
+				fullGroup = false;
+				noGroup.signal();
+			}
+		}
+		lock.unlock();		
+		/*
 		lock.lock();
 		numCustomers--;
 		nfs++;
@@ -43,33 +67,54 @@ public class SushiMonitor_03 {
 			if(nfs==5) fullGroup = false;
 			noGroup.signal();
 		}
-		lock.unlock();		
+		lock.unlock();	
+		*/	
 	}
 	
 	public void enter (int i) {
 		/* COMPLETE */
 		lock.lock();
-		if(nfs == 0) {
-			fullGroup = true;
-		}
-		System.out.println("----> ENTERING "+"C("+i+")");
-		while (numCustomers == MAX_CAPACITY || fullGroup) {
-			if (first) {
-				System.out.println(" *** Possible group detected. I wait "+"C("+i+")");
-				first = false;
-			} else {
-				System.out.println(" *** I'm told to wait for all free "+"C("+i+")");
+		int currentCustomer = nextCustomer;
+		nextCustomer++;
+		System.out.println("----> Entering " + "C(" + i + ")");
+		while (nfs == 0 || fullGroup || currentCustomer != nowServing) {
+
+			if (!fullGroup && nfs == 0) {
+				System.out.println(" *** Possible group detected. I wait " + "C(" + i + ")");
+				fullGroup = true;
+
+			} else if (fullGroup) {
+				System.out.println(" *** I'm told to wait for all free " + "C(" + i + ")");
 			}
+
+			if (!fullGroup&&vipsWaiting==0)
+				noGroup.signal();
+
 			noGroup.awaitUninterruptibly();
 		}
-		System.out.println(" +++ [free: " + nfs + "] I sit down C("+i+")");
-		numCustomers++;
+		System.out.println(" +++ [free: " + nfs + "] I sit down C(" + i + ")");
 		nfs--;
+		nowServing++;
 		lock.unlock();
 	}
 	
 	public void exit (int i) {
 		/* COMPLETE */
+		
+		lock.lock();
+		nfs++;
+		System.out.println("---> Now leaving [free: " + nfs + "] " + "C(" + i + ")");
+
+		vipWait.signal();
+		
+		if(vipsWaiting==0) {
+			if (nfs == 5) {
+				fullGroup = false;
+				noGroup.signal();
+			}
+		}
+		lock.unlock();
+		/*
 		lock.lock();
 		numCustomers--;
 		nfs++;
@@ -84,5 +129,6 @@ public class SushiMonitor_03 {
 			noGroup.signal();
 		}
 		lock.unlock();
+		*/
 	}
 }
