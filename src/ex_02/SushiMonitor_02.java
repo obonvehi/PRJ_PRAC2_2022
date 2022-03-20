@@ -1,9 +1,7 @@
 package ex_02;
 
-import java.util.concurrent.locks.*;
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class SushiMonitor_02 {
 
